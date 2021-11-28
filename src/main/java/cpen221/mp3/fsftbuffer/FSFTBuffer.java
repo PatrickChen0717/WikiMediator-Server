@@ -3,6 +3,7 @@ package cpen221.mp3.fsftbuffer;
 import java.util.ArrayList;
 import static java.lang.Math.min;
 import static java.util.stream.Collectors.toList;
+import java.util.concurrent.TimeUnit;
 
 
 public class FSFTBuffer<T extends Bufferable> {
@@ -13,9 +14,10 @@ public class FSFTBuffer<T extends Bufferable> {
     /* the default timeout value is 3600s */
     public static final int DTIMEOUT = 3600;
 
+
     private int capacity;
     private int timeout;
-    private ArrayList<element> arraylist=new ArrayList<>();
+    public ArrayList<element> arraylist=new ArrayList<>();
 
     /**
      * Create a buffer with a fixed capacity and a timeout value.
@@ -39,25 +41,28 @@ public class FSFTBuffer<T extends Bufferable> {
     }
 
     public void checklifetime(){
-        arraylist.stream().filter(x->x.lifetime+x.starttime>=(int)System.nanoTime());
+        arraylist= (ArrayList<element>) arraylist.stream().filter(x->x.lifetime>=(System.currentTimeMillis()-x.starttime)/1000).collect(toList());
     }
     /**
      * Add a value to the buffer.
      * If the buffer is full then remove the least recently accessed
      * object to make room for the new object.
      */
-    public boolean put(element t) {
+    public boolean put(T t) {
         checklifetime();
-        t.lifetime=timeout;
-        t.usedtime=(int)System.nanoTime();
+        element newelement=new element((cpen221.mp3.fsftbuffer.T) t);
+        newelement.lifetime=this.timeout;
+        newelement.usedtime=(int)System.nanoTime();
 
         //check if it's possible to add elements
         if(arraylist.size()<capacity){
-            arraylist.add(t);
+            arraylist.add(newelement);
+            System.out.println(arraylist.size());
+            System.out.println("element added");
             return true;
         }
         else if(arraylist.size()==capacity){
-            int temp=arraylist.get(0).usedtime;
+            long temp=arraylist.get(0).usedtime;
             int index=0;
             for(int i=0;i<arraylist.size();i++){
                 if(temp>arraylist.get(i).usedtime){
@@ -65,7 +70,7 @@ public class FSFTBuffer<T extends Bufferable> {
                 }
             }
             arraylist.remove(index);
-            arraylist.add(t);
+            arraylist.add(newelement);
             return true;
         }
         else {
@@ -78,15 +83,21 @@ public class FSFTBuffer<T extends Bufferable> {
      * @return the object that matches the identifier from the
      * buffer
      */
-    public element get(String id) throws ObjectNotFoundException {
+    public T get(String id) throws ObjectNotFoundException {
+
         checklifetime();
+        System.out.println("time:"+(System.currentTimeMillis())/1000);
+        System.out.println("time:"+(arraylist.get(0).starttime)/1000);
 
         int index=-1;
+
         try{
+            System.out.println(arraylist.size());
             for(int i=0;i<arraylist.size();i++){
-                if(id.equals(arraylist.get(i).id)){
+                if(id.equals(arraylist.get(i).getid())){
                     index=i;
                 }
+
             }
             if(index==-1){
                 throw new ObjectNotFoundException("Object Not Found Exception");
@@ -95,13 +106,12 @@ public class FSFTBuffer<T extends Bufferable> {
         catch(ObjectNotFoundException e){
 
         }
-        //update use time
 
 
         int timeinSecond=(int)System.nanoTime();
         arraylist.get(index).lifetime=arraylist.get(index).lifetime+timeinSecond;
 
-        return arraylist.get(index);
+        return (T) arraylist.get(index).t;
 
     }
 
@@ -116,7 +126,7 @@ public class FSFTBuffer<T extends Bufferable> {
     public boolean touch(String id) {
         checklifetime();
 
-        int count= arraylist.stream().map(x->x.id()).filter(x->x.equals(id)).collect(toList()).size();
+        int count= arraylist.stream().map(x->x.getid()).filter(x->x.equals(id)).collect(toList()).size();
 
         if(count!=1){
             return false;
@@ -124,12 +134,12 @@ public class FSFTBuffer<T extends Bufferable> {
         else{
             int index=0;
             for(int i=0;i<arraylist.size();i++){
-                if(id.equals(arraylist.get(i).id)){
+                if(id.equals(arraylist.get(i).getid())){
                     index=i;
                 }
             }
             int timeinSecond=(int)System.nanoTime();
-            arraylist.get(index).lifetime=arraylist.get(index).lifetime+timeinSecond;
+            arraylist.get(index).lifetime=arraylist.get(index).lifetime+timeinSecond/1000000000;
             arraylist.get(index).usedtime=(int)System.nanoTime();
 
             return true;
@@ -145,13 +155,13 @@ public class FSFTBuffer<T extends Bufferable> {
      * @param t the object to update
      * @return true if successful and false otherwise
      */
-    public boolean update(element t) throws ObjectNotFoundException{
+    public boolean update(T t) throws ObjectNotFoundException{
         checklifetime();
         int count=0;
         int index=-1;
         try{
             for(int i=0;i<arraylist.size();i++){
-                if(t.id().equals(arraylist.get(i).id)){
+                if(t.id().equals(arraylist.get(i).getid())){
                     index=i;
                     count++;
                 }

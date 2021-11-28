@@ -1,21 +1,22 @@
 package cpen221.mp3.fsftbuffer;
 import java.util.concurrent.TimeUnit;
 
-public class element implements Bufferable{
-    public String id;
+public class element {
+
+    public T t;
+    //constructor
     public int lifetime;
-    public int starttime;
-    public int usedtime;
+    public long starttime;
+    public long usedtime;
 
     //constructor
-    public element(String id){
-        this.id=id;
-        this.starttime=(int)System.nanoTime();
-        this.usedtime=(int)System.nanoTime();
+    public element(T t){
+        this.t=t;
+        this.starttime=System.currentTimeMillis();
+        this.usedtime=System.currentTimeMillis();
     }
 
-    @Override
-    public String id() {
-        return id;
+    public String getid() {
+        return t.id();
     }
 }
