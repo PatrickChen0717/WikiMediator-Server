@@ -18,7 +18,7 @@ public class FSFTBuffer<T extends Bufferable> {
 
     private int capacity;
     private int timeout;
-    public ArrayList<element> arraylist=new ArrayList<>();
+    public ArrayList<element> arraylist=new ArrayList<element>();
 
     /**
      * Create a buffer with a fixed capacity and a timeout value.
@@ -34,6 +34,9 @@ public class FSFTBuffer<T extends Bufferable> {
         this.timeout=timeout;
     }
 
+    public ArrayList<element> getArray() {
+        return this.arraylist;
+    }
     /**
      * Create a buffer with default capacity and timeout values.
      */
@@ -43,7 +46,7 @@ public class FSFTBuffer<T extends Bufferable> {
 
     public void checklifetime(){
         synchronized (lock){
-            arraylist= (ArrayList<element>) arraylist.stream().filter(x->x.lifetime>=(System.currentTimeMillis()-x.starttime)/1000).collect(toList());
+            arraylist= (ArrayList<element>) arraylist.stream().filter(x->x.lifetime*1000>=(System.currentTimeMillis()-x.starttime)).collect(toList());
         }
     }
     /**
@@ -92,8 +95,8 @@ public class FSFTBuffer<T extends Bufferable> {
     public T get(String id) throws ObjectNotFoundException {
 
         checklifetime();
-        System.out.println("time:"+(System.currentTimeMillis())/1000);
-        System.out.println("time:"+(arraylist.get(0).starttime)/1000);
+        System.out.println("time:"+(System.currentTimeMillis()));
+        System.out.println("time:"+(arraylist.get(0).starttime));
 
         synchronized (lock1){
             int index=-1;
@@ -115,10 +118,10 @@ public class FSFTBuffer<T extends Bufferable> {
             }
 
 
-            int timeinSecond=(int)System.currentTimeMillis()/1000;
-            arraylist.get(index).lifetime=arraylist.get(index).lifetime+timeinSecond;
+            int timeinSecond=(int)System.currentTimeMillis();
+            arraylist.get(index).lifetime=arraylist.get(index).lifetime+timeinSecond/1000;
 
-            return (T) arraylist.get(index).t;
+            return (T) arraylist.get(index).getT();
         }
 
 
@@ -147,9 +150,9 @@ public class FSFTBuffer<T extends Bufferable> {
                     index=i;
                 }
             }
-            int timeinSecond=(int)System.currentTimeMillis()/1000;
+            int timeinSecond=(int)System.currentTimeMillis();
             arraylist.get(index).lifetime=arraylist.get(index).lifetime+timeinSecond;
-            arraylist.get(index).usedtime=(int)System.currentTimeMillis()/1000;
+            arraylist.get(index).usedtime=(int)System.currentTimeMillis();
 
             return true;
         }
@@ -166,24 +169,8 @@ public class FSFTBuffer<T extends Bufferable> {
      */
     public boolean update(T t) throws ObjectNotFoundException{
         checklifetime();
-        int count=0;
-        int index=-1;
-        try{
-            for(int i=0;i<arraylist.size();i++){
-                if(t.id().equals(arraylist.get(i).getid())){
-                    index=i;
-                    count++;
-                }
-            }
-            if(index==-1||count>1){
-                throw new ObjectNotFoundException("Object Not Found Exception");
-            }
-        }
-        catch(ObjectNotFoundException e){
-            return false;
-        }
-        arraylist.get(index).usedtime=System.currentTimeMillis()/1000;
-        return true;
+        String id=t.id();
+        return touch(id);
     }
 
 

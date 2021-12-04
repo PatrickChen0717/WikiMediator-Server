@@ -1,7 +1,7 @@
 package cpen221.mp3.fsftbuffer;
 import java.util.concurrent.TimeUnit;
 
-public class element {
+public class element{
 
     public T t;
     //constructor
@@ -11,12 +11,15 @@ public class element {
 
     //constructor
     public element(T t){
-        this.t=t;
         this.starttime=System.currentTimeMillis();
         this.usedtime=System.currentTimeMillis();
     }
 
     public String getid() {
         return t.id();
+    }
+
+    public T getT() {
+        return this.t;
     }
 }
