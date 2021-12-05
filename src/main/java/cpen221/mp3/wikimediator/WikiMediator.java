@@ -1,10 +1,13 @@
 package cpen221.mp3.wikimediator;
 
+import cpen221.mp3.fsftbuffer.element;
 import org.fastily.jwiki.core.Wiki;
 
 import java.security.Key;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 public class WikiMediator{
 
@@ -19,15 +22,49 @@ public class WikiMediator{
         this.wiki = new Wiki.Builder().withDomain("en.wikipedia.org").build();
     }
 
+    public void checkstaleness(){
+        pagelist= (ArrayList<wikipage>) pagelist.stream().filter(x->x.timeout* 1000L >=(System.currentTimeMillis()-x.starttime)).collect(toList());
+    }
+
     public List<String> search(String query,int limit){
+        int index=-1;
+        for(int i=0;i<pagelist.size();i++){
+            if(pagelist.get(i).getPagetitle().equals(query)){
+                index=i;
+            }
+        }
+
+        if(index==-1){
+            wikipage newpage=new wikipage(query);
+            newpage.timeout=stalenessInterval;
+            newpage.incrementAccesscount();
+            pagelist.add(newpage);
+        }
+        else{
+            pagelist.get(index).incrementAccesscount();
+        }
         return wiki.search(query, limit);
     }
 
     public String getPage(String pageTitle){
-        wikipage newpage=new wikipage(pageTitle);
-        newpage.timeout=stalenessInterval;
-        newpage.incrementAccesscount();
-        pagelist.add(newpage);
+        int index=-1;
+        for(int i=0;i<pagelist.size();i++){
+            if(pagelist.get(i).getPagetitle().equals(pageTitle)){
+                index=i;
+            }
+        }
+
+        if(index==-1){
+            wikipage newpage=new wikipage(pageTitle);
+            newpage.starttime=System.currentTimeMillis();
+            newpage.timeout=stalenessInterval;
+            newpage.incrementAccesscount();
+            pagelist.add(newpage);
+        }
+        else{
+            pagelist.get(index).incrementAccesscount();
+        }
+
         return wiki.getPageText(pageTitle);
     }
 
@@ -35,8 +72,8 @@ public class WikiMediator{
         List<wikipage> list=pagelist;
         list.sort(Comparator.comparing(wikipage::getAccesscount).reversed());
         List<String> result=list.stream().map(wikipage::getPagetitle).collect(Collectors.toList());
-        for(int i=0;i<limit-list.size();i++){
-            result.remove(list.size()-1);
+        for(int i=0;i<list.size()-limit;i++){
+            result.remove(result.size()-1);
         }
 
         return result;
@@ -51,7 +88,8 @@ public class WikiMediator{
 
         list.sort(Comparator.comparing(wikipage::getAccesscount).reversed());
 
-        for(int i=0;i<maxItems-list.size();i++){
+        int length= list.size()-maxItems;
+        for(int i=0;i<length;i++){
             list.remove(list.size()-1);
         }
 

@@ -8,7 +8,9 @@ import java.util.ArrayList;
 public class wikipage {
     private String pagetext;
     private String pagetitle;
-    public int timeout;
+    public long timeout;
+    public long starttime;
+
     private ArrayList<Integer> accesshistory;
 
     public wikipage(String pagetitle) {
