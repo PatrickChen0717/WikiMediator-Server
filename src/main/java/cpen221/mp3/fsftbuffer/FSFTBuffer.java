@@ -46,7 +46,7 @@ public class FSFTBuffer<T extends Bufferable> {
 
     public void checklifetime(){
         synchronized (lock){
-            arraylist= (ArrayList<element>) arraylist.stream().filter(x->x.lifetime*1000>=(System.currentTimeMillis()-x.starttime)).collect(toList());
+            arraylist= (ArrayList<element>) arraylist.stream().filter(x->x.lifetime* 1000L >=(System.currentTimeMillis()-x.starttime)).collect(toList());
         }
     }
     /**
@@ -118,8 +118,8 @@ public class FSFTBuffer<T extends Bufferable> {
             }
 
 
-            int timeinSecond=(int)System.currentTimeMillis();
-            arraylist.get(index).lifetime=arraylist.get(index).lifetime+timeinSecond/1000;
+            arraylist.get(index).starttime= System.currentTimeMillis();
+            arraylist.get(index).usedtime= System.currentTimeMillis();
 
             return (T) arraylist.get(index).getT();
         }
@@ -150,9 +150,9 @@ public class FSFTBuffer<T extends Bufferable> {
                     index=i;
                 }
             }
-            int timeinSecond=(int)System.currentTimeMillis();
-            arraylist.get(index).lifetime=arraylist.get(index).lifetime+timeinSecond;
-            arraylist.get(index).usedtime=(int)System.currentTimeMillis();
+
+            arraylist.get(index).starttime= System.currentTimeMillis();
+            arraylist.get(index).usedtime=System.currentTimeMillis();
 
             return true;
         }

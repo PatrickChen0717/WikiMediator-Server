@@ -10,8 +10,12 @@ public class WikiMediator{
 
     private ArrayList<wikipage> pagelist=new ArrayList<wikipage>();
     private Wiki wiki;
+    private int capacity;
+    private int stalenessInterval;
 
     public WikiMediator(int capacity,int stalenessInterval){
+        this.capacity=capacity;
+        this.stalenessInterval=stalenessInterval;
         this.wiki = new Wiki.Builder().withDomain("en.wikipedia.org").build();
     }
 
@@ -21,6 +25,7 @@ public class WikiMediator{
 
     public String getPage(String pageTitle){
         wikipage newpage=new wikipage(pageTitle);
+        newpage.timeout=stalenessInterval;
         newpage.incrementAccesscount();
         pagelist.add(newpage);
         return wiki.getPageText(pageTitle);
