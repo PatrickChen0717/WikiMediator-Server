@@ -42,7 +42,22 @@ public class Tests {
 
             System.out.println("------------------ "+list.get("1").id());
 
+        /*
+        System.out.println(test.put(t1));
+        TimeUnit.SECONDS.sleep(45);
+        System.out.println(test.touch("1"));
 
+        T t2 =test.get("1");
+
+        */
+
+
+
+
+
+        // list.put(e1);
+        // System.out.println(list.arraylist.get(0).lifetime);
+        //System.out.println(list.get("1").lifetime);
 
 
 
