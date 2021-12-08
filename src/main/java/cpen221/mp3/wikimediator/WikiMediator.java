@@ -294,6 +294,10 @@ public class WikiMediator {
      */
 
     public List<String> shortestPath(String pageTitle1, String pageTitle2, int timeout) throws TimeoutException{
+        
+        long currentime=System.currentTimeMillis();     //due to version control, these two lines were missed
+        counting.add(currentime);                       //added on Dec.8 at 1:17pm
+        
         List<String> result = new ArrayList<>();
         ExecutorService timeoutserve = Executors.newCachedThreadPool();
         Callable<Object> task = new Callable<Object>() {
